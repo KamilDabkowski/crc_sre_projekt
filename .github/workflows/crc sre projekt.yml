@@ -1,0 +1,88 @@
+name: crc projekt workflow
+
+on: workflow_dispatch
+
+jobs:               
+  install_prometheus:
+    runs-on: ubuntu-latest
+    steps:
+    - name: create prometheus user
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: |
+          echo "switch to root"
+          sudo su -
+
+          sudo useradd -m -s /bin/bash prometheus
+          sudo chown -R prometheus:prometheus /home/prometheus/
+
+    - name: install alert manager
+      uses: appleboy/ssh-action@v1.0.3
+      env:
+        $host: ${{ secrets.EMAILHOST }}
+        $email: ${{ secrets.EMAIL }}
+        $emailpassword: ${{ secrets.EMAILPASSWORD }}
+        $emailto: ${{ secrets.EMAILTO }}
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: |
+          $test = ${{ secrets.USERNAME }}
+          echo "switch to root"
+          sudo su - 
+          mkdir /tmp/crc/
+          sudo cat > /tmp/crc/alertmanager.yml << EOF
+          route:
+            receiver: 'Mail Alert'
+            repeat_interval: 30s
+            group_wait: 15s
+            group_interval: 15s
+
+          receivers:
+            - name: 'Mail Alert'
+              email_configs:
+              - smarthost: $host
+                auth_username: $email
+                auth_password: $password
+                from: $email
+                to: $emailto
+                headers:
+                  subject: 'Prometheus Mail Alerts'
+          EOF
+
+    - uses: actions/checkout@v4   
+    - name: copy file via ssh password
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        source: "centos_rules.yml,installprometheus.sh,postgres_exporter.env,prometheus.yml,grafana.sh,grafana_dashboard.json"
+        target: /tmp/crc/
+      
+    - name: install prometheus and grafana
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
+        script: |
+          echo "switch to root"
+          sudo su -
+          cd /tmp/crc/
+
+          echo "install prometheus"
+          chmod +x installprometheus.sh
+          sudo ./installprometheus.sh
+
+          echo "install grafana"
+          chmod +x grafana.sh
+          sudo ./grafana.sh -y
