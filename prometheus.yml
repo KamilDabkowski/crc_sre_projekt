@@ -1,0 +1,57 @@
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - localhost:9093
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+   - "centos_rules.yml"
+
+scrape_configs:
+  - job_name: "prometheus"
+    honor_labels: true
+    static_configs:
+      - targets:
+        - localhost:9090
+        labels:
+          machine: crc_centos
+ 
+  - job_name: "node_exporter"
+    honor_labels: true
+    static_configs:
+      - targets:
+        - localhost:9100
+        labels:
+          machine: crc_centos
+
+  - job_name: "api_exporter"
+    honor_labels: true
+    metrics_path: '/metrics'
+    static_configs:
+      - targets:
+        - localhost:8080
+        labels:
+          machine: crc_centos
+
+  - job_name: "grafana"
+    honor_labels: true
+    static_configs:
+      - targets:
+        - localhost:3000
+        labels:
+          machine: crc_centos
+
+  - job_name: "postgres_exporter"
+    honor_labels: true
+    static_configs:
+      - targets:
+        - localhost:9187
+        labels:
+          machine: crc_centos

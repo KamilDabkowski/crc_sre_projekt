@@ -1,0 +1,53 @@
+groups:
+- name: CentOS monitoring
+  rules:
+  - alert: Host_Out_Of_Memory
+    expr: node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100 < 10
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Host out of memory (machine {{ $labels.machine }}, value {{ $value }})
+      description: "Node memory is filling up (< 4% left)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+  - alert: Host_Out_Of_Disk_Space
+    expr: (node_filesystem_avail_bytes *100) / node_filesystem_size_bytes < 5 and ON (instance, device, mountpoint) node_filesystem_readonly == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Host out of disk space (machine {{ $labels.machine }}, mountpoint = {{ $labels.mountpoint }})
+      description: "Disk is almost full (< 5% left) mountpoint = {{ $labels.mountpoint }}"
+  - alert: Host_Read_Disk_Error
+    expr: node_filesystem_device_error == 1
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Can't read disk (machine {{ $labels.machine }}, mountpoint = {{ $labels.mountpoint }})
+      description: "Can't read mounted disk = {{ $labels.mountpoint }}. Please investigate"
+  - alert: Host_Out_Of_CPU
+    expr: rate(node_cpu_seconds_total{mode="user"}[1m]) > 0.95
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Host will run out of availavle CPU resources (machine {{ $labels.machine }})
+      description: "CPU will soon run out of available resources (recent usage above 95%)"
+
+  - alert: Many_Requests_Errors
+    expr: irate(http_requests_total{handler="/api/v1/applications/{id}",method="GET",status="5xx"}[1m]) > 20
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Many requests have result 5xx (machine {{ $labels.machine }})
+      description: "Many requests have result 5xx"
+
+  - alert: Many_DB_Connections
+    expr: sum(pg_stat_activity_count) >= 8
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      summary: Many active db connections (machine {{ $labels.machine }})
+      description: "Active db connections are close to limit 10"
