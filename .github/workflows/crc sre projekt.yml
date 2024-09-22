@@ -35,7 +35,7 @@ jobs:
         script: |
           $test = ${{ secrets.USERNAME }}
           echo "switch to root"
-          sudo su - 
+          sudo -i
           mkdir /tmp/crc/
           sudo cat > /tmp/crc/alertmanager.yml << EOF
           route:
