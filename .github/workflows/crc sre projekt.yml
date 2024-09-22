@@ -15,8 +15,8 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           echo "switch to root"
-          sudo su -
-
+          sudo -i
+          
           sudo useradd -m -s /bin/bash prometheus
           sudo chown -R prometheus:prometheus /home/prometheus/
 
@@ -76,7 +76,7 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           echo "switch to root"
-          sudo su -
+          sudo -i
           cd /tmp/crc/
 
           echo "install prometheus"
