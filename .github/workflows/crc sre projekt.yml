@@ -30,7 +30,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
           $test = ${{ secrets.USERNAME }}
@@ -62,7 +62,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         source: "centos_rules.yml,installprometheus.sh,postgres_exporter.env,prometheus.yml,grafana.sh,grafana_dashboard.json"
         target: /tmp/crc/
@@ -72,7 +72,7 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.SSHKEY }}
         port: ${{ secrets.PORT }}
         script: |
           echo "switch to root"
